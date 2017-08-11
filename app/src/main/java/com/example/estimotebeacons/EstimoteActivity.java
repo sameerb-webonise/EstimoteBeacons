@@ -34,7 +34,7 @@ public class EstimoteActivity extends AppCompatActivity {
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
         placesByBeacons.put("36015:56457", new ArrayList<String>() {{
-            add("ICE");
+            add("Aerobic-ICE");
             /*// read as: "Heavenly Sandwiches" is closest
             // to the beacon with major 22504 and minor 48827
             add("Green & Green Salads");
@@ -43,12 +43,12 @@ public class EstimoteActivity extends AppCompatActivity {
             // "Mini Panini" is the furthest away*/
         }});
         placesByBeacons.put("12830:49469", new ArrayList<String>() {{
-            add("BLUEBERRY");
+            add("Gym-BLUEBERRY");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
         placesByBeacons.put("45892:23678", new ArrayList<String>() {{
-            add("MINT");
+            add("Yoga-MINT");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
