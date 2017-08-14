@@ -5,14 +5,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
-import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
 import com.estimote.coresdk.recognition.packets.Beacon;
 import com.estimote.coresdk.service.BeaconManager;
@@ -25,46 +19,65 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EstimoteActivity extends AppCompatActivity implements View.OnClickListener {
+/**
+ * Created by webonise on 14/8/17.
+ */
 
-    //private static final Map<String, List<String>> PLACES_BY_BEACONS;
-    private static final String TAG = EstimoteActivity.class.getName();
+public class ApplicationController {
+    private static final String TAG = ApplicationController.class.getName();
+    private static ApplicationController mInstance;
+    private Map<String, List<String>> PLACES_BY_BEACONS = null;
+    private BeaconManager beaconManager;
+    private BeaconRegion region;
     private String lastDiscoveredBeacon = "";
-    private TextView textView;
+    private Context applicationContext;
+    private String beaconData = "";
 
-    // TODO: replace "<major>:<minor>" strings to match your own beacons.
-    /*static {
+    private ApplicationController(){
+
+    }
+
+    public static ApplicationController getInstance(){
+        if (mInstance == null) {
+            mInstance = new ApplicationController();
+        }
+        return mInstance;
+    }
+
+    public void initPlaces(Context applicationContext){
+        this.applicationContext = applicationContext;
         Map<String, List<String>> placesByBeacons = new HashMap<>();
         placesByBeacons.put("36015:56457", new ArrayList<String>() {{
             add("Aerobic-ICE");
+            /*// read as: "Heavenly Sandwiches" is closest
+            // to the beacon with major 22504 and minor 48827
+            add("Green & Green Salads");
+            // "Green & Green Salads" is the next closest
+            add("Mini Panini");
+            // "Mini Panini" is the furthest away*/
         }});
         placesByBeacons.put("12830:49469", new ArrayList<String>() {{
             add("Gym-BLUEBERRY");
+            /*add("Green & Green Salads");
+            add("Heavenly Sandwiches");*/
         }});
         placesByBeacons.put("45892:23678", new ArrayList<String>() {{
             add("Yoga-MINT");
+            /*add("Green & Green Salads");
+            add("Heavenly Sandwiches");*/
         }});
         PLACES_BY_BEACONS = Collections.unmodifiableMap(placesByBeacons);
     }
 
-    private List<String> placesNearBeacon(Beacon beacon) {
-        String beaconKey = String.format("%d:%d", beacon.getMajor(), beacon.getMinor());
-        if (PLACES_BY_BEACONS.containsKey(beaconKey)) {
-            return PLACES_BY_BEACONS.get(beaconKey);
-        }
-        return Collections.emptyList();
-    }
-
-    private BeaconManager beaconManager;
-    private BeaconRegion region;*/
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_estimote);
-        textView = (TextView) findViewById(R.id.tvInfo);
-        ((Button) findViewById(R.id.btnRefresh)).setOnClickListener(this);
-        /*beaconManager = new BeaconManager(this);
+    public void setRangingListener(){
+        beaconManager = new BeaconManager(applicationContext);
+        region = new BeaconRegion("ranged region", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override
+            public void onServiceReady() {
+                beaconManager.startRanging(region);
+            }
+        });
         beaconManager.setRangingListener(new BeaconManager.BeaconRangingListener() {
 
             @Override
@@ -80,53 +93,36 @@ public class EstimoteActivity extends AppCompatActivity implements View.OnClickL
 
                         if(!lastDiscoveredBeacon.equals("")) {
                             String titleExit = "\nExited region: " + lastDiscoveredBeacon;
-                            textView.setText(textView.getText() + "\n" + titleExit + "\nAT " + currentTime);
+                            beaconData = beaconData + "\n" + titleExit + "\nAT " + currentTime;
+                            //textView.setText(textView.getText() + "\n" + titleExit + "\nAT " + currentTime);
                         }
                         lastDiscoveredBeacon = places.get(0);
                         String titleEntry = "Entered region: "+ lastDiscoveredBeacon;
                         String message = beaconRegion.getProximityUUID()+":"+beaconRegion.getMajor()+":"+beaconRegion.getMinor();
                         showNotification(titleEntry,
                                 message);
-                        textView.setText(textView.getText()+"\n"+titleEntry+"\nAT "+ currentTime);
+                        beaconData = beaconData + "\n"+titleEntry+"\nAT "+ currentTime;
+                        //textView.setText(textView.getText()+"\n"+titleEntry+"\nAT "+ currentTime);
                     }
                 }
 
             }
         });
 
-        region = new BeaconRegion("ranged region", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);*/
+        region = new BeaconRegion("ranged region", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        SystemRequirementsChecker.checkWithDefaultDialogs(this);
-        refreshBeaconData();
-        /*beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-            @Override
-            public void onServiceReady() {
-                beaconManager.startRanging(region);
-            }
-        });*/
-    }
-
-    private void refreshBeaconData() {
-        if(textView != null){
-            textView.setText(ApplicationController.getInstance().getUpdatedBeaconData());
+    private List<String> placesNearBeacon(Beacon beacon) {
+        String beaconKey = String.format("%d:%d", beacon.getMajor(), beacon.getMinor());
+        if (PLACES_BY_BEACONS.containsKey(beaconKey)) {
+            return PLACES_BY_BEACONS.get(beaconKey);
         }
-    }
-
-    @Override
-    protected void onPause() {
-        //beaconManager.stopRanging(region);
-
-        super.onPause();
+        return Collections.emptyList();
     }
 
     public void showNotification(String title, String message) {
-        Context applicationContext = getApplicationContext();
         //Toast.makeText(applicationContext, title+"\n"+message, Toast.LENGTH_SHORT).show();
-        Intent notifyIntent = new Intent(applicationContext, EstimoteActivity.class);
+        Intent notifyIntent = new Intent(/*applicationContext, EstimoteActivity.class*/);
         notifyIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivities(applicationContext, 0,
                 new Intent[]{notifyIntent}, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -139,16 +135,12 @@ public class EstimoteActivity extends AppCompatActivity implements View.OnClickL
                 .build();
         notification.defaults |= Notification.DEFAULT_SOUND;
         NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()){
-            case R.id.btnRefresh:
-                refreshBeaconData();
-                break;
-        }
+    public String getUpdatedBeaconData(){
+        return beaconData;
     }
+
 }

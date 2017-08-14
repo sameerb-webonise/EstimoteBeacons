@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.estimote.coresdk.common.config.EstimoteSDK;
+import com.estimote.coresdk.observation.region.Region;
 import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
 import com.estimote.coresdk.recognition.packets.Beacon;
 import com.estimote.coresdk.service.BeaconManager;
@@ -30,6 +31,8 @@ public class MyApplication extends Application {
                                     EstimoteSDK.getAppToken() == null ? "App Token" : EstimoteSDK.getAppToken());
 
         beaconManager = new BeaconManager(getApplicationContext());
+        ApplicationController.getInstance().initPlaces(getApplicationContext());
+        ApplicationController.getInstance().setRangingListener();
         /*beaconManager.setMonitoringListener(new BeaconManager.BeaconMonitoringListener() {
 
             @Override
@@ -76,7 +79,6 @@ public class MyApplication extends Application {
         });*/
     }
 
-
     public void cancelNotification() {
         Toast.makeText(this, "cancelNotification", Toast.LENGTH_SHORT).show();
         NotificationManager notificationManager =
@@ -102,4 +104,5 @@ public class MyApplication extends Application {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
     }
+
 }
