@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.Realm;
+
 /**
  * Created by webonise on 14/8/17.
  */
@@ -32,6 +34,7 @@ public class ApplicationController {
     private String lastDiscoveredBeacon = "";
     private Context applicationContext;
     private String beaconData = "";
+    private Notify notify;
 
     private ApplicationController(){
 
@@ -48,7 +51,7 @@ public class ApplicationController {
         this.applicationContext = applicationContext;
         Map<String, List<String>> placesByBeacons = new HashMap<>();
         placesByBeacons.put("36015:56457", new ArrayList<String>() {{
-            add("Aerobic-ICE");
+            add("Gymshim Desk (ICE)");
             /*// read as: "Heavenly Sandwiches" is closest
             // to the beacon with major 22504 and minor 48827
             add("Green & Green Salads");
@@ -57,12 +60,12 @@ public class ApplicationController {
             // "Mini Panini" is the furthest away*/
         }});
         placesByBeacons.put("12830:49469", new ArrayList<String>() {{
-            add("Gym-BLUEBERRY");
+            add("Cocoon Cam Desk (BLUEBERRY)");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
         placesByBeacons.put("45892:23678", new ArrayList<String>() {{
-            add("Yoga-MINT");
+            add("NFHS Desk (MINT)");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
@@ -84,7 +87,8 @@ public class ApplicationController {
             public void onBeaconsDiscovered(BeaconRegion beaconRegion, List<Beacon> beacons) {
                 if (!beacons.isEmpty()) {
                     Beacon nearestBeacon = beacons.get(0);
-                    List<String> places = placesNearBeacon(nearestBeacon);
+                    String beaconKey = String.format("%d:%d", nearestBeacon.getMajor(), nearestBeacon.getMinor());
+                    List<String> places = placesNearBeacon(beaconKey);
                     // TODO: update the UI here
                     //Log.d(TAG, "Nearest beacon: " + places);
                     if(lastDiscoveredBeacon.equals("") || !lastDiscoveredBeacon.equals(places.get(0))) {
@@ -92,17 +96,26 @@ public class ApplicationController {
                         String currentTime = Calendar.getInstance().getTime().toString();
 
                         if(!lastDiscoveredBeacon.equals("")) {
-                            String titleExit = "\nExited region: " + lastDiscoveredBeacon;
+                            String titleExit = "\nLeft " + lastDiscoveredBeacon;
                             beaconData = beaconData + "\n" + titleExit + "\nAT " + currentTime;
                             //textView.setText(textView.getText() + "\n" + titleExit + "\nAT " + currentTime);
                         }
                         lastDiscoveredBeacon = places.get(0);
-                        String titleEntry = "Entered region: "+ lastDiscoveredBeacon;
+                        String titleEntry = "At "+ lastDiscoveredBeacon;
                         String message = beaconRegion.getProximityUUID()+":"+beaconRegion.getMajor()+":"+beaconRegion.getMinor();
                         showNotification(titleEntry,
                                 message);
                         beaconData = beaconData + "\n"+titleEntry+"\nAT "+ currentTime;
-                        //textView.setText(textView.getText()+"\n"+titleEntry+"\nAT "+ currentTime);
+
+                        BeaconData beaconData = new BeaconData(beaconRegion.getProximityUUID()+"", nearestBeacon.getMajor(), nearestBeacon.getMinor(),
+                                                                nearestBeacon.getMacAddress().toString(), nearestBeacon.getMeasuredPower(),
+                                                                nearestBeacon.getRssi(), nearestBeacon.getUniqueKey(), currentTime, System.currentTimeMillis());
+                        Realm realm = Realm.getDefaultInstance();
+                        realm.beginTransaction();
+                        realm.copyToRealmOrUpdate(beaconData);
+                        realm.commitTransaction();
+                        realm.close();
+                        notify.updateData();
                     }
                 }
 
@@ -112,8 +125,7 @@ public class ApplicationController {
         region = new BeaconRegion("ranged region", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
     }
 
-    private List<String> placesNearBeacon(Beacon beacon) {
-        String beaconKey = String.format("%d:%d", beacon.getMajor(), beacon.getMinor());
+    public List<String> placesNearBeacon(String beaconKey) {
         if (PLACES_BY_BEACONS.containsKey(beaconKey)) {
             return PLACES_BY_BEACONS.get(beaconKey);
         }
@@ -121,8 +133,8 @@ public class ApplicationController {
     }
 
     public void showNotification(String title, String message) {
-        //Toast.makeText(applicationContext, title+"\n"+message, Toast.LENGTH_SHORT).show();
-        Intent notifyIntent = new Intent(/*applicationContext, EstimoteActivity.class*/);
+        NotificationController.getInstance().showNotification(title,title/*+"\n"+message*/);
+        /*Intent notifyIntent = new Intent(*//*applicationContext, EstimoteActivity.class*//*);
         notifyIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivities(applicationContext, 0,
                 new Intent[]{notifyIntent}, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -136,11 +148,14 @@ public class ApplicationController {
         notification.defaults |= Notification.DEFAULT_SOUND;
         NotificationManager notificationManager =
                 (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, notification);
+        notificationManager.notify(1, notification);*/
     }
 
     public String getUpdatedBeaconData(){
         return beaconData;
     }
 
+    public void setNotify(Notify notify) {
+        this.notify = notify;
+    }
 }
