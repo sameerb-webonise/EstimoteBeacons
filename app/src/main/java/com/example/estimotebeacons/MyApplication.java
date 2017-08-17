@@ -4,9 +4,6 @@ import android.app.Application;
 import android.content.Context;
 
 import com.estimote.coresdk.common.config.EstimoteSDK;
-import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
-import com.estimote.coresdk.service.BeaconManager;
-import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -14,7 +11,6 @@ import io.realm.RealmConfiguration;
 public class MyApplication extends Application {
 
     private static final String TAG = MyApplication.class.getName();
-    private BeaconManager beaconManager;
     private static Context applicationContext;
 
     @Override
@@ -32,16 +28,14 @@ public class MyApplication extends Application {
         EstimoteSDK.initialize(getApplicationContext(), EstimoteSDK.getAppId() == null ? "App Id" : EstimoteSDK.getAppId(),
                                     EstimoteSDK.getAppToken() == null ? "App Token" : EstimoteSDK.getAppToken());
 
-        beaconManager = new BeaconManager(getApplicationContext());
         ApplicationController.getInstance().initPlaces(getApplicationContext());
-        ApplicationController.getInstance().setRangingListener();
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+        /*beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
                 beaconManager.startMonitoring(new BeaconRegion("ice",
                         UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), 45892, 23678));
             }
-        });
+        });*/
     }
 
     public static Context getAppContext(){

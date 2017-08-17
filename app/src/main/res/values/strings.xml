@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">EstimoteBeacons</string>
+    <string name="msg_permission_denied">Please grant all the required permission</string>
+    <string name="enable_permission">Please enable required permissions from Application settings </string>
+    <string name="action_enable">Enable</string>
+    <string name="enable_bluetooth_settings">Turn on Bluetooth to scan devices.</string>
+    <string name="action_settings">Settings</string>
 </resources>
