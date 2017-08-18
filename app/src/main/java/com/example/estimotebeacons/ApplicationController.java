@@ -1,10 +1,6 @@
 package com.example.estimotebeacons;
-
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
@@ -51,7 +47,7 @@ public class ApplicationController {
         this.applicationContext = applicationContext;
         Map<String, List<String>> placesByBeacons = new HashMap<>();
         placesByBeacons.put("36015:56457", new ArrayList<String>() {{
-            add("Gymshim Desk (ICE)");
+            add("Cafeteria (ICE)");
             /*// read as: "Heavenly Sandwiches" is closest
             // to the beacon with major 22504 and minor 48827
             add("Green & Green Salads");
@@ -60,12 +56,12 @@ public class ApplicationController {
             // "Mini Panini" is the furthest away*/
         }});
         placesByBeacons.put("12830:49469", new ArrayList<String>() {{
-            add("Cocoon Cam Desk (BLUEBERRY)");
+            add("Reception (BLUEBERRY)");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
         placesByBeacons.put("45892:23678", new ArrayList<String>() {{
-            add("NFHS Desk (MINT)");
+            add("Main office (MINT)");
             /*add("Green & Green Salads");
             add("Heavenly Sandwiches");*/
         }});
@@ -101,7 +97,7 @@ public class ApplicationController {
                             //textView.setText(textView.getText() + "\n" + titleExit + "\nAT " + currentTime);
                         }
                         lastDiscoveredBeacon = places.get(0);
-                        String titleEntry = "At "+ lastDiscoveredBeacon;
+                        String titleEntry = "At "+ lastDiscoveredBeacon+" AT "+ currentTime;
                         String message = beaconRegion.getProximityUUID()+":"+beaconRegion.getMajor()+":"+beaconRegion.getMinor();
                         showNotification(titleEntry,
                                 message);
@@ -133,7 +129,12 @@ public class ApplicationController {
     }
 
     public void showNotification(String title, String message) {
-        NotificationController.getInstance().showNotification(title,title/*+"\n"+message*/);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            NotificationUtil.bundledNotification(title, message);
+            //new BundledNotificationHelper(MyApplication.getAppContext()).generateBundle(MyApplication.getAppContext());
+        } else {
+            NotificationController.getInstance().showNotification(title, title/*+"\n"+message*/);
+        }
         /*Intent notifyIntent = new Intent(*//*applicationContext, EstimoteActivity.class*//*);
         notifyIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivities(applicationContext, 0,

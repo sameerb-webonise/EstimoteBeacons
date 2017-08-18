@@ -160,12 +160,15 @@ public class EstimoteActivity extends AppCompatActivity implements View.OnClickL
             public void run() {
                 Realm realm = Realm.getDefaultInstance();
                 beaconDatas = realm.where(BeaconData.class).findAllSorted("timeInMillis", Sort.DESCENDING);
-                if(beaconDatas != null){
-                    textView.setText("");
-                    for (BeaconData beaconData:beaconDatas) {
+                if(beaconDatas != null && beaconDatas.size()>0){
+                    //textView.setText("");
+                    /*for (BeaconData beaconData:beaconDatas) {
                         textView.append("\nAt "+ApplicationController.getInstance().placesNearBeacon(beaconData.getMajorNo()+":"+ beaconData.getMinorNo())+
                                 "\nat "+ beaconData.getTime());
-                    }
+                    }*/
+                    BeaconData beaconData = beaconDatas.get(0);
+                    textView.append("\nAt "+ApplicationController.getInstance().placesNearBeacon(beaconData.getMajorNo()+":"+ beaconData.getMinorNo())+
+                            "\nat "+ beaconData.getTime());
 
                     //textView.setText(ApplicationController.getInstance().getUpdatedBeaconData());
 
